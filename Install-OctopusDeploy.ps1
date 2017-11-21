@@ -218,10 +218,10 @@ function Configure-OctopusDeploy
   Write-Log ""
 }
 
-function Configure-Firewall
+function Configure-Firewall-Http
 {
   Write-Log "======================================"
-  Write-Log " Configure Firewall"
+  Write-Log " Configure Firewall Http"
   Write-Log ""
 
   $firewallRuleName = "Allow_Port80_HTTP"
@@ -252,6 +252,40 @@ function Configure-Firewall
   Write-Log ""
 }
 
+function Configure-Firewall-Https
+{
+  Write-Log "======================================"
+  Write-Log " Configure Firewall Https"
+  Write-Log ""
+
+  $firewallRuleName = "Allow_Port443_HTTPS"
+
+  if ((Get-NetFirewallRule -Name $firewallRuleName -ErrorAction Ignore) -eq $null)
+  {
+    Write-Log "Creating firewall rule to allow port 443 HTTPS traffic ..."
+    $firewallRule = @{
+      Name=$firewallRuleName
+      DisplayName ="Allow Port 443 (HTTPS)"
+      Description="Port 443 for HTTPS traffic"
+      Direction='Inbound'
+      Protocol='TCP'
+      LocalPort=443
+      Enabled='True'
+      Profile='Any'
+      Action='Allow'
+    }
+    $output = (New-NetFirewallRule @firewallRule | Out-String)
+    Write-CommandOutput $output
+    Write-Log "done."
+  }
+  else
+  {
+    Write-Log "Firewall rule to allow port 443 HTTPS traffic already exists."
+  }
+
+  Write-Log ""
+}
+
 try
 {
   Write-Log "======================================"
@@ -263,7 +297,8 @@ try
   Create-InstallLocation
   Install-OctopusDeploy
   Configure-OctopusDeploy
-  Configure-Firewall
+  Configure-Firewall-Http
+  Configure-Firewall-Https
 
   Write-Log "Installation successful."
   Write-Log ""
