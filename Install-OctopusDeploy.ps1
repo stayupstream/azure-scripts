@@ -17,6 +17,7 @@ $msiPath = $installBasePath + $msiFileName
 $msiLogPath = $installBasePath + $msiFileName + '.log'
 $installerLogPath = $installBasePath + 'Install-OctopusDeploy.ps1.log'
 $octopusLicenseUrl = "https://octopusdeploy.com/api/licenses/trial"
+$chocolateyUrl = "https://chocolatey.org/install.ps1"
 $OFS = "`r`n"
 
 function Write-Log
@@ -142,7 +143,7 @@ function Configure-OctopusDeploy
     '--upgradeCheckWithStatistics', 'True',
     '--webAuthenticationMode', 'UsernamePassword',
     '--webForceSSL', 'False',
-    '--webListenPrefixes', 'http://localhost:80/',
+    '--webListenPrefixes', 'http://localhost:8080/',
     '--commsListenPort', '10943'
   )
   $output = .$exe $args
@@ -216,6 +217,22 @@ function Configure-OctopusDeploy
   Write-Log "done."
 
   Write-Log ""
+}
+
+function Install-Chocolatey
+{
+  Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString($chocolateyUrl))
+}
+
+function Install-Apps
+{
+  CINST firefox -y
+  CINST notepadplusplus -y
+  CINST nodejs -y
+  CINST yarn -y
+  CINST teamcity -y
+  CINST teamcityagent -y
+  CINST octopusdeploy.tentacle -y
 }
 
 function Configure-Firewall-Http
@@ -297,6 +314,8 @@ try
   Create-InstallLocation
   Install-OctopusDeploy
   Configure-OctopusDeploy
+  Install-Chocolatey
+  Install-Apps
   Configure-Firewall-Http
   Configure-Firewall-Https
 
